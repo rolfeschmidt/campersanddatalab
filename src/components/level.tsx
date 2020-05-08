@@ -16,6 +16,10 @@ export function MemberSelector(props: MemberSelectorProps): JSX.Element {
         props.members.map((member: Member) => ({ label: member.name, value: member.id }))
     )
 
+    useEffect(() => {
+        setOptions(props.members.map((member: Member) => ({ label: member.name, value: member.id })))
+    }, [props.members])
+
     const selectMember = (eventKey: any, event: object) => {
         console.log(`dropdown select`, { eventKey, event })
 
@@ -63,27 +67,28 @@ function selectorPropsForMember(m: Member, setFn: (m: Member | null) => void): M
 
 export function MultiLevelSelector(props: MultiLevelSelectorProps): JSX.Element {
     const [selected, setSelected] = useState<Member | null>(null)
-    const [selections, setSelections] = useState<Member[]>([])
     const [dropdownData, setDropdownData] = useState<MemberSelectorProps[]>([])
+    const [ready, setReady] = useState(false)
     const { levels } = props.dataset
 
     useEffect(() => {
         console.log(`setup effect`)
         props.dataset.ready
             .then(() => {
+                setReady(true)
                 setSelected(props.dataset.levels[0].members[0])
             })
-            .catch((e) => {
+            .catch((e: any) => {
                 console.error('error setting up MultiLevelSelector', { e })
             })
     }, [])
 
     useEffect(() => {
         console.log(`selected effect`, { selected })
-        if (selected) {
+        if (selected && ready) {
             const selectionChain = [...selected.ancestors, selected]
-            setSelections(selectionChain)
             const dropdowns = selectionChain.map((m: Member) => selectorPropsForMember(m, setSelected))
+            console.log({ selectionChain })
             if (selectionChain.length < levels.length) {
                 const lastLevel = levels[selectionChain.length]
                 const lastDropdownProps = {
@@ -93,13 +98,14 @@ export function MultiLevelSelector(props: MultiLevelSelectorProps): JSX.Element 
                     disabled: false,
                     setSelectedMember: setSelected,
                 }
+                console.log(`adding last level`, { lastDropdownProps })
                 dropdowns.push(lastDropdownProps)
             } else {
                 console.log('no last level!')
             }
             setDropdownData(dropdowns)
         }
-    }, [selected, levels])
+    }, [selected, levels, ready])
 
     const selectMember = (m: Member | null) => {
         setSelected(m)
