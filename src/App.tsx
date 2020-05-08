@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 
 import 'bootstrap/dist/css/bootstrap.min.css'
 
-import { BarChart, XAxis, YAxis, CartesianGrid, Tooltip, Bar } from 'recharts'
+import { BarChart, XAxis, YAxis, CartesianGrid, Tooltip, Bar, ComposedChart, Area } from 'recharts'
 
 import logo from './logo.svg'
 import './App.css'
@@ -18,7 +18,7 @@ function App() {
     const [member, setMember] = useState<Member | null>()
     const [series, setSeries] = useState<TimeSeries>()
     const [newCases, setnewCases] = useState<TimeSeries>()
-    const [newCaseChartData, setNewCaseChartData] = useState<{ day: string; newCases: number }[]>([])
+    const [newCaseChartData, setNewCaseChartData] = useState<{ day: string; newCases: number; ma: number }[]>([])
 
     useEffect(() => {
         console.log(`series is set`, { series })
@@ -41,8 +41,19 @@ function App() {
     useEffect(() => {
         if (newCases && newCases.times.length > 0) {
             const chartdata = []
+            const madata = []
+            let movingsum = 0
             for (let i = 0; i < newCases?.times.length; ++i) {
-                chartdata.push({ day: newCases.times[i].toUTCString(), newCases: newCases.values[i] })
+                movingsum += newCases.values[i]
+                if (i > 6) {
+                    movingsum -= newCases.values[i - 7]
+                }
+                chartdata.push({
+                    day: newCases.times[i].toUTCString(),
+                    ma: movingsum / 7,
+                    newCases: newCases.values[i],
+                })
+                madata.push({ day: newCases.times[i].toUTCString(), ma: movingsum / 7 })
             }
             setNewCaseChartData(chartdata)
         }
@@ -65,13 +76,14 @@ function App() {
                 <div>{levelControls}</div>
                 <div>Series: {series?.values?.join(', ') || 'loading'}</div>
                 <div>
-                    <BarChart width={1000} height={400} data={newCaseChartData}>
+                    <ComposedChart width={1000} height={400} data={newCaseChartData}>
                         <XAxis padding={{ left: 20, right: 100 }} dataKey="day" type="category" />
                         <YAxis type="number" />
                         <CartesianGrid />
                         <Tooltip />
                         <Bar dataKey="newCases" fill="#ff7300" maxBarSize={15} />
-                    </BarChart>
+                        <Area type="monotone" dataKey="ma" fill="#8884d8" stroke="#8884d8" />
+                    </ComposedChart>
                 </div>
             </div>
         </div>
