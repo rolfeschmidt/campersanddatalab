@@ -37,10 +37,6 @@ function Copyright(): JSX.Element {
                 Rolfe Schmidt
             </Link>{' '}
             {new Date().getFullYear()}
-            {'. Data provided by '}
-            <Link color="inherit" href="https://github.com/CSSEGISandData/COVID-19">
-                JHU CSSE
-            </Link>
             {'.'}
         </Typography>
     )
@@ -279,6 +275,20 @@ function App(): JSX.Element {
                     </Grid>
                     <Box pt={4}>
                         <Copyright />
+                        <Typography variant="body2" color="textSecondary" align="center">
+                            {'Data provided by '}
+                            <Link color="inherit" href="https://github.com/CSSEGISandData/COVID-19">
+                                JHU CSSE
+                            </Link>
+                            {'.'}
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary" align="center">
+                            {'Source code avaiable on '}
+                            <Link color="inherit" href="https://github.com/rolfeschmidt/campersanddatalab">
+                                GitHub
+                            </Link>
+                            {'.'}
+                        </Typography>
                     </Box>
                 </Container>
             </main>
