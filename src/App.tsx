@@ -26,6 +26,7 @@ import { XAxis, YAxis, CartesianGrid, Tooltip, Bar, ComposedChart, Area, Respons
 import { JHUCovid19USDataset } from './jhudata/jhu-us-covid'
 import { Member, TimeSeries, Level } from './types/dataset'
 import { MultiLevelSelector } from './components/level'
+import { unsupportedProp } from '@material-ui/core'
 
 const dataset = new JHUCovid19USDataset()
 
@@ -123,11 +124,16 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
 }))
 
+const search = window.location.search
+const urlparams = new URLSearchParams(search)
+const initSeries = urlparams.get('s1')
+const fragment = window.location.hash
+
 function App(): JSX.Element {
     const classes = useStyles()
     const [open, setOpen] = useState(true)
 
-    const [member, setMember] = useState<Member | null>()
+    const [member, setMember] = useState<Member | null>(null)
     const [series, setSeries] = useState<TimeSeries>()
     const [newCases, setnewCases] = useState<TimeSeries>()
     const [newCaseChartData, setNewCaseChartData] = useState<{ day: string; newCases: number; ma: number }[]>([])
@@ -136,7 +142,9 @@ function App(): JSX.Element {
         document.title = 'COVID-19 Data Explorer'
         dataset.ready
             .then(() => {
-                setMember(dataset.levels[0].members[0])
+                const initmember = initSeries ? dataset.members[initSeries] : dataset.levels[0].members[0]
+                console.log({ initSeries, initmember })
+                setMember(initmember)
             })
             .catch((e: any) => {
                 console.error('error loading data', { e })
@@ -149,6 +157,11 @@ function App(): JSX.Element {
     useEffect(() => {
         console.log(`member effect`, { member })
         if (member) {
+            if (member.id !== urlparams.get('s1')) {
+                urlparams.set('s1', member.id)
+                console.log(window.location.pathname + '?' + urlparams.toString())
+                window.history.pushState({ s1: member.id }, '', window.location.pathname + '?' + urlparams.toString())
+            }
             dataset
                 .getSeries(member, { name: 'confirmed' })
                 .then(setSeries)
