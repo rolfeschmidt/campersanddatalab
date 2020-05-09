@@ -13,19 +13,14 @@ export class JHUCovid19USDataset implements Dataset {
 
     private _loaded: Promise<boolean>
 
-    private allLevel: Level = { name: 'all', members: [] }
     private countryLevel: Level = { name: 'country', members: [] }
     private stateLevel: Level = { name: 'state', members: [] }
     private countyLevel: Level = { name: 'county', members: [] }
-    private allMember = new ParentMember('all', this.allLevel)
 
     constructor() {
-        this.allLevel.members.push(this.allMember)
-        this._members[this.allMember.name] = this.allMember
-        this.levels = [this.allLevel, this.countryLevel, this.stateLevel, this.countyLevel]
+        this.levels = [this.countryLevel, this.stateLevel, this.countyLevel]
         this._loaded = this.load()
 
-        linkLevels(this.allLevel, this.countryLevel)
         linkLevels(this.countryLevel, this.stateLevel)
         linkLevels(this.stateLevel, this.countyLevel)
     }
@@ -68,10 +63,9 @@ export class JHUCovid19USDataset implements Dataset {
         let countryMember = this._members[countryKey] as ParentMember
         let stateMember = this._members[stateKey] as ParentMember
         if (!countryMember) {
-            countryMember = new ParentMember(country, this.countryLevel, this.allMember)
-            this.allMember.children.push(countryMember)
+            countryMember = new ParentMember(country, this.countryLevel)
             this._members[countryKey] = countryMember
-            this.levels[1].members.push(countryMember)
+            this.levels[0].members.push(countryMember)
             this._confirmed[countryMember.id] = new Array(values.length).fill(0)
             this._newCases[countryMember.id] = new Array(values.length).fill(0)
         }
@@ -79,13 +73,13 @@ export class JHUCovid19USDataset implements Dataset {
             stateMember = new ParentMember(state, this.stateLevel, countryMember)
             this._members[stateKey] = stateMember
             countryMember.children.push(stateMember)
-            this.levels[2].members.push(stateMember)
+            this.levels[1].members.push(stateMember)
             this._confirmed[stateMember.id] = new Array(values.length).fill(0)
             this._newCases[stateMember.id] = new Array(values.length).fill(0)
         }
         const leafMember = new Member(county, this.countyLevel, stateMember)
         this._members[countyKey] = leafMember
-        this.levels[3].members.push(leafMember)
+        this.levels[2].members.push(leafMember)
         stateMember.children.push(leafMember)
         this._newCases[leafMember.id] = new Array(values.length)
 
