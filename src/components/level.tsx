@@ -1,54 +1,75 @@
 import React, { useState, useEffect } from 'react'
-import { DropdownButton, Dropdown, ButtonGroup } from 'react-bootstrap'
+import ListItem from '@material-ui/core/ListItem'
+import Checkbox from '@material-ui/core/Checkbox'
+import TextField from '@material-ui/core/TextField'
+import Autocomplete, { RenderInputParams } from '@material-ui/lab/Autocomplete'
+import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank'
+import CheckBoxIcon from '@material-ui/icons/CheckBox'
 import { Level, Member, Dataset, ParentMember } from '../types/dataset'
 
+// tslint:disable: jsx-no-lambda
+// tslint:disable: arrow-parens
 export interface MemberSelectorProps {
     name: string
     members: Member[]
-    defaultMember: Member | null
+    selectedMember?: Member
     disabled: boolean
-    setSelectedMember: (m: Member | null) => void
+    setSelectedMember: (ms: Member | null) => void
 }
 
 export function MemberSelector(props: MemberSelectorProps): JSX.Element {
-    const [selected, setSelected] = useState('')
-    const [options, setOptions] = useState(
-        props.members.map((member: Member) => ({ label: member.name, value: member.id }))
-    )
-
-    useEffect(() => {
-        setOptions(props.members.map((member: Member) => ({ label: member.name, value: member.id })))
-    }, [props.members])
-
-    const selectMember = (eventKey: any, event: object) => {
-        console.log(`dropdown select`, { eventKey, event })
-
-        const member = props.members.find((m: Member) => m.id === eventKey) || props.defaultMember
-        setSelected(eventKey)
-        props.setSelectedMember(member)
+    const [selected, setSelected] = useState<Member | null>(null)
+    const onChange = (event: any, value: Member | null) => {
+        console.log(`onClick`, { event, value })
+        setSelected(value)
+        value = value || selected?.parent || null
+        props.setSelectedMember(value)
     }
-    const click = (arg: any) => {
-        console.log(`onClick`, { arg })
+    const onInputChange = (event: object, value: string, reason: 'input' | 'reset' | 'clear') => {
+        console.log(`onInputChange`, { event, value, reason })
     }
+    console.log(`render MemberSeelector`, { props })
     return (
         <div key={props.name} style={{ display: 'inline-block', margin: 10 }}>
             <h2>{props.name}</h2>
-            <DropdownButton id={props.name} title={props.name} onClick={click}>
-                {options.map((opt: { label: string; value: string }) => (
-                    <Dropdown.Item
-                        eventKey={opt.value}
-                        onSelect={selectMember}
-                        active={selected === opt.value}
-                        key={opt.value}
-                    >
-                        {opt.label}
-                    </Dropdown.Item>
-                ))}
-            </DropdownButton>
-            <div>{selected || '<none selected>'}</div>
+            <Autocomplete
+                options={props.members}
+                getOptionLabel={(member: Member) => member.name}
+                value={props.selectedMember}
+                onChange={onChange}
+                onInputChange={onInputChange}
+                style={{ width: 200 }}
+                renderInput={(params: RenderInputParams) => (
+                    <TextField {...params} variant="outlined" label={props.name} />
+                )}
+            />
         </div>
     )
 }
+/***
+ * Multiple autocomplete example:
+ *
+const icon = <CheckBoxOutlineBlankIcon fontSize="small" />
+const checkedIcon = <CheckBoxIcon fontSize="small" />
+
+            <Autocomplete
+                multiple
+                options={props.members}
+                disableCloseOnSelect
+                getOptionLabel={(member: Member) => member.name}
+                onChange={onChange}
+                renderOption={(member, { selected }) => (
+                    <React.Fragment>
+                        <Checkbox icon={icon} checkedIcon={checkedIcon} style={{ marginRight: 8 }} checked={selected} />
+                        {member.name}
+                    </React.Fragment>
+                )}
+                style={{ width: 500 }}
+                renderInput={(params: RenderInputParams) => (
+                    <TextField {...params} variant="outlined" label={props.name} />
+                )}
+            />
+ */
 
 export interface MultiLevelSelectorProps {
     dataset: Dataset
@@ -59,7 +80,7 @@ function selectorPropsForMember(m: Member, setFn: (m: Member | null) => void): M
     return {
         name: m.level.name,
         members: m.parent?.children || m.level.members,
-        defaultMember: m,
+        selectedMember: m,
         setSelectedMember: setFn,
         disabled: false,
     }
@@ -94,7 +115,6 @@ export function MultiLevelSelector(props: MultiLevelSelectorProps): JSX.Element 
                 const lastDropdownProps = {
                     name: lastLevel.name,
                     members: selected.children || [],
-                    defaultMember: selected,
                     disabled: false,
                     setSelectedMember: setSelected,
                 }
@@ -107,7 +127,7 @@ export function MultiLevelSelector(props: MultiLevelSelectorProps): JSX.Element 
         }
     }, [selected, levels, ready])
 
-    const selectMember = (m: Member | null) => {
+    const selectMembers = (m: Member | null) => {
         setSelected(m)
         props.selectMember(m)
     }
@@ -124,14 +144,16 @@ export function MultiLevelSelector(props: MultiLevelSelectorProps): JSX.Element 
     return (
         <React.Fragment>
             {dropdownData.map((d, i) => (
-                <MemberSelector
-                    name={d.name}
-                    members={d.members}
-                    defaultMember={d.defaultMember}
-                    disabled={d.disabled}
-                    setSelectedMember={selectMember}
-                    key={d.name}
-                />
+                <ListItem key={d.name}>
+                    <MemberSelector
+                        name={d.name}
+                        members={d.members}
+                        selectedMember={d.selectedMember}
+                        disabled={d.disabled}
+                        setSelectedMember={selectMembers}
+                        key={d.name}
+                    />
+                </ListItem>
             ))}
         </React.Fragment>
     )
