@@ -188,7 +188,7 @@ function App(): JSX.Element {
         setOpen(false)
     }
 
-    const levelControls = <MultiLevelSelector dataset={dataset} selectMember={setMember} />
+    const levelControls = <MultiLevelSelector dataset={dataset} selectMember={setMember} initMember={member} />
 
     const renderChartLegend = (value: any, entry: any) => {
         let text = ''
