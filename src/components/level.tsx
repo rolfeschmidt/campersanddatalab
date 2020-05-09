@@ -35,7 +35,7 @@ export function MemberSelector(props: MemberSelectorProps): JSX.Element {
             <Autocomplete
                 options={props.members}
                 getOptionLabel={(member: Member) => member.name}
-                value={props.selectedMember}
+                value={props.selectedMember || null}
                 onChange={onChange}
                 onInputChange={onInputChange}
                 style={{ width: 200 }}
