@@ -28,14 +28,13 @@ export function MemberSelector(props: MemberSelectorProps): JSX.Element {
     const onInputChange = (event: object, value: string, reason: 'input' | 'reset' | 'clear') => {
         console.log(`onInputChange`, { event, value, reason })
     }
-    console.log(`render MemberSeelector`, { props })
     return (
         <div key={props.name} style={{ display: 'inline-block', margin: 10 }}>
             <h2>{props.name}</h2>
             <Autocomplete
                 options={props.members}
                 getOptionLabel={(member: Member) => member.name}
-                value={props.selectedMember}
+                value={props.selectedMember || null}
                 onChange={onChange}
                 onInputChange={onInputChange}
                 style={{ width: 200 }}
@@ -74,6 +73,7 @@ const checkedIcon = <CheckBoxIcon fontSize="small" />
 export interface MultiLevelSelectorProps {
     dataset: Dataset
     selectMember: (m: Member | null) => void
+    initMember: Member | null
 }
 
 function selectorPropsForMember(m: Member, setFn: (m: Member | null) => void): MemberSelectorProps {
@@ -87,13 +87,13 @@ function selectorPropsForMember(m: Member, setFn: (m: Member | null) => void): M
 }
 
 export function MultiLevelSelector(props: MultiLevelSelectorProps): JSX.Element {
-    const [selected, setSelected] = useState<Member | null>(null)
+    const [selected, setSelected] = useState<Member | null>(props.initMember || null)
     const [dropdownData, setDropdownData] = useState<MemberSelectorProps[]>([])
     const [ready, setReady] = useState(false)
     const { levels } = props.dataset
 
     useEffect(() => {
-        console.log(`setup effect`)
+        console.log(`setup effect`, { selected })
         props.dataset.ready
             .then(() => {
                 setReady(true)
@@ -103,6 +103,12 @@ export function MultiLevelSelector(props: MultiLevelSelectorProps): JSX.Element 
                 console.error('error setting up MultiLevelSelector', { e })
             })
     }, [])
+
+    useEffect(() => {
+        if (props.initMember) {
+            setSelected(props.initMember)
+        }
+    }, [props.initMember])
 
     useEffect(() => {
         console.log(`selected effect`, { selected })

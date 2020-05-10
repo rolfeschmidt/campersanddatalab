@@ -47,6 +47,7 @@ export interface Dataset {
     levels: Level[]
     measures: Measure[]
     timePoints: Date[]
+    members: { [k: string]: Member }
 
     getSeries: (member: Member, measure: Measure) => Promise<TimeSeries>
     readonly ready: Promise<boolean>

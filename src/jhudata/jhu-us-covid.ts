@@ -36,6 +36,9 @@ export class JHUCovid19USDataset implements Dataset {
 
         return true
     }
+    get members(): { [k: string]: Member } {
+        return this._members
+    }
 
     get ready(): Promise<boolean> {
         return this._loaded
