@@ -2,9 +2,24 @@ import React, { useEffect, useState } from 'react'
 import { TimeSeries } from '../types/dataset'
 import { ComposedChart, XAxis, YAxis, Legend, CartesianGrid, Bar, Area, Tooltip, ResponsiveContainer } from 'recharts'
 
+// Grabbing colors from here: https://htmlcolorcodes.com/color-chart/material-design-color-chart/
+const colors = [
+    {
+        bar: '#303f9f',
+        stroke: '#1a237e',
+        area: '#7986cb',
+    },
+    {
+        bar: '#f57c00',
+        stroke: '#e65100',
+        area: '#ffb74d',
+    },
+]
+
 export interface TimeSeriesChartProps {
     timeSeries: TimeSeries[]
 }
+
 export function TimeSeriesChart(props: TimeSeriesChartProps): JSX.Element {
     const [tsmap, settsmap] = useState<{ [k: string]: TimeSeries }>({})
     const [chartData, setChartData] = useState<{ [k: string]: string | number }[]>([])
@@ -42,9 +57,19 @@ export function TimeSeriesChart(props: TimeSeriesChartProps): JSX.Element {
 
     const bars = () => {
         const bs = []
+        let colorindex = 0
         for (const ts of props.timeSeries) {
-            bs.push(<Bar dataKey={ts.name} maxBarSize={15} key={ts.name} />)
-            bs.push(<Area type="monotone" dataKey={`${ts.name}.ma${window}`} key={`${ts.name}.ma${window}`} />)
+            bs.push(<Bar dataKey={ts.name} maxBarSize={15} key={ts.name} fill={colors[colorindex].bar} />)
+            bs.push(
+                <Area
+                    type="monotone"
+                    dataKey={`${ts.name}.ma${window}`}
+                    stroke={colors[colorindex].stroke}
+                    fill={colors[colorindex].area}
+                    key={`${ts.name}.ma${window}`}
+                />
+            )
+            colorindex = (colorindex + 1) % colors.length
         }
         console.log(bs)
         return bs
