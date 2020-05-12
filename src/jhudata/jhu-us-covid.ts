@@ -103,6 +103,11 @@ export class JHUCovid19USDataset implements Dataset {
             confirmed: this._confirmed,
             newCases: this._newCases,
         } as { [k: string]: any }
-        return { times: this.timePoints, values: measures[measure.name][member.id] }
+        return {
+            name: `${member.id}.${measure.name}`,
+            displayName: `${member.name} - ${measure.name}`,
+            times: this.timePoints,
+            values: measures[measure.name][member.id],
+        }
     }
 }
