@@ -27,6 +27,7 @@ import { JHUCovid19USDataset } from './jhudata/jhu-us-covid'
 import { Member, TimeSeries, Level } from './types/dataset'
 import { MultiLevelSelector } from './components/level'
 import { unsupportedProp } from '@material-ui/core'
+import { TimeSeriesChart } from './components/time-series-chart'
 
 const dataset = new JHUCovid19USDataset()
 
@@ -269,20 +270,7 @@ function App(): JSX.Element {
                         {/* Chart */}
                         <Grid item xs={12} md={8} lg={12}>
                             <Paper className={classes.paper}>
-                                <ResponsiveContainer height={500} width="90%">
-                                    <ComposedChart
-                                        margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
-                                        data={newCaseChartData}
-                                    >
-                                        <XAxis padding={{ left: 20, right: 100 }} dataKey="day" type="category" />
-                                        <YAxis type="number" />
-                                        <Legend formatter={renderChartLegend} />
-                                        <CartesianGrid />
-                                        <Tooltip />
-                                        <Bar dataKey="newCases" fill="#ff7300" maxBarSize={15} />
-                                        <Area type="monotone" dataKey="ma" fill="#8884d8" stroke="#8884d8" />
-                                    </ComposedChart>
-                                </ResponsiveContainer>
+                                <TimeSeriesChart timeSeries={newCases ? [newCases] : []} />
                             </Paper>
                         </Grid>
                     </Grid>

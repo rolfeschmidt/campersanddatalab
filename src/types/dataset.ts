@@ -54,6 +54,8 @@ export interface Dataset {
 }
 
 export interface TimeSeries {
+    name: string
+    displayName: string
     times: Date[]
     values: number[]
 }
