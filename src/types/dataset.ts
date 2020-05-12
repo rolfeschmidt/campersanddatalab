@@ -1,3 +1,9 @@
+/**
+ * Copyright 2020 - Rolfe Schmidt
+ *
+ * This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0
+ * International License  (http://creativecommons.org/licenses/by-nc-sa/4.0/)
+ */
 export class Member {
     parent?: Member
     name: string

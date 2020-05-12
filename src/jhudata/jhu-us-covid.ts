@@ -1,3 +1,9 @@
+/**
+ * Copyright 2020 - Rolfe Schmidt
+ *
+ * This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0
+ * International License  (http://creativecommons.org/licenses/by-nc-sa/4.0/)
+ */
 import { Dataset, Member, Measure, Level, TimeSeries, ParentMember, linkLevels } from '../types/dataset'
 const DATA_URL =
     'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv'

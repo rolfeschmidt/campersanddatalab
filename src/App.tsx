@@ -1,3 +1,9 @@
+/**
+ * Copyright 2020 - Rolfe Schmidt
+ *
+ * This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0
+ * International License  (http://creativecommons.org/licenses/by-nc-sa/4.0/)
+ */
 import React, { useState, useEffect } from 'react'
 import clsx from 'clsx'
 import 'typeface-roboto'
@@ -289,6 +295,21 @@ function App(): JSX.Element {
                                 GitHub
                             </Link>
                             {'.'}
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary" align="center">
+                            <Link rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">
+                                <img
+                                    alt="Creative Commons License"
+                                    style={{ borderWidth: 0 }}
+                                    src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png"
+                                />
+                            </Link>
+                            <br />
+                            This work is licensed under a{' '}
+                            <Link rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">
+                                Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License
+                            </Link>
+                            .
                         </Typography>
                     </Box>
                 </Container>
