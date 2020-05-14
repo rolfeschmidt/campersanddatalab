@@ -25,12 +25,10 @@ export interface MemberSelectorProps {
 }
 
 export function MemberSelector(props: MemberSelectorProps): JSX.Element {
-    const [selected, setSelected] = useState<Member | null>(null)
     const onChange = (event: any, value: Member | null) => {
         console.log(`onClick`, { event, value })
-        setSelected(value)
-        value = value || selected?.parent || null
-        props.setSelectedMember(value)
+        const newMember = value || props.selectedMember?.parent || null
+        props.setSelectedMember(newMember)
     }
     const onInputChange = (event: object, value: string, reason: 'input' | 'reset' | 'clear') => {
         console.log(`onInputChange`, { event, value, reason })
