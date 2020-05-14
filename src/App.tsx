@@ -25,14 +25,11 @@ import Paper from '@material-ui/core/Paper'
 import Link from '@material-ui/core/Link'
 import MenuIcon from '@material-ui/icons/Menu'
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft'
-import NotificationsIcon from '@material-ui/icons/Notifications'
-
-import { XAxis, YAxis, CartesianGrid, Tooltip, Bar, ComposedChart, Area, ResponsiveContainer, Legend } from 'recharts'
 
 import { JHUCovid19USDataset } from './jhudata/jhu-us-covid'
-import { Member, TimeSeries, Level } from './types/dataset'
+import { Member, TimeSeries, Measure } from './types/dataset'
 import { MultiLevelSelector } from './components/level'
-import { unsupportedProp } from '@material-ui/core'
+import { FormControl, InputLabel, Select, MenuItem } from '@material-ui/core'
 import { TimeSeriesChart } from './components/time-series-chart'
 
 const dataset = new JHUCovid19USDataset()
@@ -129,6 +126,13 @@ const useStyles = makeStyles((theme: Theme) => ({
     fixedHeight: {
         height: 240,
     },
+    formControl: {
+        margin: theme.spacing(1),
+        minWidth: 120,
+    },
+    selectEmpty: {
+        marginTop: theme.spacing(2),
+    },
 }))
 
 const search = window.location.search
@@ -142,8 +146,7 @@ function App(): JSX.Element {
 
     const [member, setMember] = useState<Member | null>(null)
     const [series, setSeries] = useState<TimeSeries>()
-    const [newCases, setnewCases] = useState<TimeSeries>()
-    const [newCaseChartData, setNewCaseChartData] = useState<{ day: string; newCases: number; ma: number }[]>([])
+    const [measure, setMeasure] = useState<Measure>({ name: 'newCases' })
 
     useEffect(() => {
         document.title = 'COVID-19 Data Explorer'
@@ -170,36 +173,28 @@ function App(): JSX.Element {
                 window.history.pushState({ s1: member.id }, '', window.location.pathname + '?' + urlparams.toString())
             }
             dataset
-                .getSeries(member, { name: 'confirmed' })
+                .getSeries(member, measure)
                 .then(setSeries)
-                .then(() => dataset.getSeries(member, { name: 'newCases' }))
-                .then(setnewCases)
                 .catch((e: any) => {
                     console.error('error loading data', { e })
                 })
+        } else {
+            console.log(`member effect`, { member, measure, series })
         }
     }, [member])
 
     useEffect(() => {
-        if (newCases && newCases.times.length > 0) {
-            const chartdata = []
-            const madata = []
-            let movingsum = 0
-            for (let i = 0; i < newCases?.times.length; ++i) {
-                movingsum += newCases.values[i]
-                if (i > 6) {
-                    movingsum -= newCases.values[i - 7]
-                }
-                chartdata.push({
-                    day: newCases.times[i].toUTCString(),
-                    ma: movingsum / 7,
-                    newCases: newCases.values[i],
+        if (member && measure) {
+            dataset
+                .getSeries(member, measure)
+                .then((ts: TimeSeries) => {
+                    setSeries(ts)
                 })
-                madata.push({ day: newCases.times[i].toUTCString(), ma: movingsum / 7 })
-            }
-            setNewCaseChartData(chartdata)
+                .catch((e: any) => {
+                    console.error(`error getting series`, { e })
+                })
         }
-    }, [newCases])
+    }, [member, measure])
 
     const handleDrawerOpen = () => {
         setOpen(true)
@@ -207,7 +202,26 @@ function App(): JSX.Element {
     const handleDrawerClose = () => {
         setOpen(false)
     }
+    const handleMeasureChange = (event: any) => {
+        setMeasure({ name: event.target.value })
+    }
 
+    const measureSelector = (
+        <FormControl className={classes.formControl}>
+            <InputLabel id="measure-select-label">Measure</InputLabel>
+            <Select
+                labelId="measure-select-label"
+                id="measure-select"
+                value={measure.name}
+                onChange={handleMeasureChange}
+            >
+                <MenuItem value={'newCases'}>New Cases</MenuItem>
+                <MenuItem value={'confirmed'}>Confirmed Cases</MenuItem>
+                <MenuItem value={'newDeaths'}>New Deaths</MenuItem>
+                <MenuItem value={'deaths'}>Deaths</MenuItem>
+            </Select>
+        </FormControl>
+    )
     const levelControls = <MultiLevelSelector dataset={dataset} selectMember={setMember} initMember={member} />
 
     const renderChartLegend = (value: any, entry: any) => {
@@ -267,16 +281,21 @@ function App(): JSX.Element {
                     </IconButton>
                 </div>
                 <Divider />
-                <List>{levelControls}</List>
+                <List>
+                    {measureSelector} {levelControls}
+                </List>
             </Drawer>
             <main className={classes.content}>
                 <div className={classes.appBarSpacer} />
                 <Container maxWidth="lg" className={classes.container}>
                     <Grid container spacing={3}>
                         {/* Chart */}
+                        <Typography component="h2" variant="h6" color="inherit" noWrap className={classes.title}>
+                            Population: {dataset.population[member?.id || ''] || ''}
+                        </Typography>
                         <Grid item xs={12} md={8} lg={12}>
                             <Paper className={classes.paper}>
-                                <TimeSeriesChart timeSeries={newCases ? [newCases] : []} />
+                                <TimeSeriesChart timeSeries={series ? [series] : []} />
                             </Paper>
                         </Grid>
                     </Grid>
