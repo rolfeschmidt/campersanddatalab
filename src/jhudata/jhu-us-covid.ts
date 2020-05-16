@@ -11,8 +11,10 @@ const DEATHS_URL =
     'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv'
 
 export class JHUCovid19USDataset implements Dataset {
+    id = 'jhu-us'
+    name = 'JHU US Data'
     levels: Level[] = []
-    measures: Measure[] = [{ name: 'confirmed' }, { name: 'new' }]
+    measures: Measure[] = [{ name: 'confirmed' }, { name: 'newCases' }, { name: 'deaths' }, { name: 'newDeaths' }]
     population: { [key: string]: number } = {}
     timePoints: Date[] = []
 
@@ -152,7 +154,7 @@ export class JHUCovid19USDataset implements Dataset {
             name: `${member.id}.${measure.name}`,
             displayName: `${member.name} - ${measure.name}`,
             times: this.timePoints,
-            values: measures[measure.name][member.id],
+            values: measures[measure.name][member.id] || [],
         }
     }
 }
