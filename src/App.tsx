@@ -235,7 +235,7 @@ function App(): JSX.Element {
     }
 
     const datasetSelector = (
-        <FormControl className={classes.formControl} key="dataset-select">
+        <FormControl className={classes.formControl}>
             <InputLabel id="dataset-select-label">Measure</InputLabel>
             <Select
                 labelId="dataset-select-label"
@@ -243,17 +243,13 @@ function App(): JSX.Element {
                 value={dataset.id || ''}
                 onChange={handleDatasetChange}
             >
-                <MenuItem value={jhuUSDataset.id} key={jhuUSDataset.id}>
-                    {jhuUSDataset.name}
-                </MenuItem>
-                <MenuItem value={jhuWorldDataset.id} key={jhuWorldDataset.id}>
-                    {jhuWorldDataset.name}
-                </MenuItem>
+                <MenuItem value={jhuUSDataset.id}>{jhuUSDataset.name}</MenuItem>
+                <MenuItem value={jhuWorldDataset.id}>{jhuWorldDataset.name}</MenuItem>
             </Select>
         </FormControl>
     )
     const measureSelector = (
-        <FormControl className={classes.formControl} key="measure-select">
+        <FormControl className={classes.formControl}>
             <InputLabel id="measure-select-label">Measure</InputLabel>
             <Select
                 labelId="measure-select-label"
@@ -261,18 +257,10 @@ function App(): JSX.Element {
                 value={measure.name || ''}
                 onChange={handleMeasureChange}
             >
-                <MenuItem value={'newCases'} key={'newCases'}>
-                    New Cases
-                </MenuItem>
-                <MenuItem value={'confirmed'} key={'confirmed'}>
-                    Confirmed Cases
-                </MenuItem>
-                <MenuItem value={'newDeaths'} key={'newDeaths'}>
-                    New Deaths
-                </MenuItem>
-                <MenuItem value={'deaths'} key={'deaths'}>
-                    Deaths
-                </MenuItem>
+                <MenuItem value={'newCases'}>New Cases</MenuItem>
+                <MenuItem value={'confirmed'}>Confirmed Cases</MenuItem>
+                <MenuItem value={'newDeaths'}>New Deaths</MenuItem>
+                <MenuItem value={'deaths'}>Deaths</MenuItem>
             </Select>
         </FormControl>
     )
