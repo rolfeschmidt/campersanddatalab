@@ -50,6 +50,8 @@ export interface Measure {
 }
 
 export interface Dataset {
+    id: string
+    name: string
     levels: Level[]
     measures: Measure[]
     timePoints: Date[]

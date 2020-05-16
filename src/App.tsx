@@ -27,12 +27,18 @@ import MenuIcon from '@material-ui/icons/Menu'
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft'
 
 import { JHUCovid19USDataset } from './jhudata/jhu-us-covid'
-import { Member, TimeSeries, Measure } from './types/dataset'
+import { Member, TimeSeries, Measure, Dataset } from './types/dataset'
 import { MultiLevelSelector } from './components/level'
 import { FormControl, InputLabel, Select, MenuItem } from '@material-ui/core'
 import { TimeSeriesChart } from './components/time-series-chart'
+import { JHUCovid19WorldDataset } from './jhudata/jhu-world-covid'
 
-const dataset = new JHUCovid19USDataset()
+const jhuUSDataset = new JHUCovid19USDataset()
+const jhuWorldDataset = new JHUCovid19WorldDataset()
+const datasets = {
+    [jhuUSDataset.id]: jhuUSDataset,
+    [jhuWorldDataset.id]: jhuWorldDataset,
+}
 
 function Copyright(): JSX.Element {
     return (
@@ -138,6 +144,9 @@ const useStyles = makeStyles((theme: Theme) => ({
 const search = window.location.search
 const urlparams = new URLSearchParams(search)
 const initSeries = urlparams.get('s1')
+const initMeasure = urlparams.get('m')
+const initDataset = urlparams.get('ds')
+
 const fragment = window.location.hash
 
 function App(): JSX.Element {
@@ -146,13 +155,15 @@ function App(): JSX.Element {
 
     const [member, setMember] = useState<Member | null>(null)
     const [series, setSeries] = useState<TimeSeries>()
-    const [measure, setMeasure] = useState<Measure>({ name: 'newCases' })
+    const [measure, setMeasure] = useState<Measure>({ name: initMeasure || 'newCases' })
+
+    const [dataset, setDataset] = useState<Dataset>(initDataset === jhuUSDataset.id ? jhuUSDataset : jhuWorldDataset)
 
     useEffect(() => {
         document.title = 'COVID-19 Data Explorer'
         dataset.ready
             .then(() => {
-                const initmember = initSeries ? dataset.members[initSeries] : dataset.levels[0].members[0]
+                const initmember = (initSeries && dataset.members[initSeries]) || dataset.levels[0].members[0]
                 console.log({ initSeries, initmember })
                 setMember(initmember)
             })
@@ -169,7 +180,6 @@ function App(): JSX.Element {
         if (member) {
             if (member.id !== urlparams.get('s1')) {
                 urlparams.set('s1', member.id)
-                console.log(window.location.pathname + '?' + urlparams.toString())
                 window.history.pushState({ s1: member.id }, '', window.location.pathname + '?' + urlparams.toString())
             }
             dataset
@@ -185,6 +195,10 @@ function App(): JSX.Element {
 
     useEffect(() => {
         if (member && measure) {
+            if (measure.name !== urlparams.get('m')) {
+                urlparams.set('m', measure.name)
+                window.history.pushState({ m: measure.name }, '', window.location.pathname + '?' + urlparams.toString())
+            }
             dataset
                 .getSeries(member, measure)
                 .then((ts: TimeSeries) => {
@@ -196,6 +210,13 @@ function App(): JSX.Element {
         }
     }, [member, measure])
 
+    useEffect(() => {
+        if (dataset.id !== urlparams.get('ds')) {
+            urlparams.set('ds', dataset.id)
+            window.history.pushState({ ds: dataset.id }, '', window.location.pathname + '?' + urlparams.toString())
+        }
+    }, [dataset])
+
     const handleDrawerOpen = () => {
         setOpen(true)
     }
@@ -205,14 +226,35 @@ function App(): JSX.Element {
     const handleMeasureChange = (event: any) => {
         setMeasure({ name: event.target.value })
     }
+    const handleDatasetChange = (event: any) => {
+        console.log(`changing dataset: ${event.target.value}`)
+        const newDataset = datasets[event.target.value]
+        const newMember = newDataset.levels[0].members[0]
+        setDataset(newDataset)
+        setMember(newMember)
+    }
 
+    const datasetSelector = (
+        <FormControl className={classes.formControl}>
+            <InputLabel id="dataset-select-label">Measure</InputLabel>
+            <Select
+                labelId="dataset-select-label"
+                id="dataset-select"
+                value={dataset.id || ''}
+                onChange={handleDatasetChange}
+            >
+                <MenuItem value={jhuUSDataset.id}>{jhuUSDataset.name}</MenuItem>
+                <MenuItem value={jhuWorldDataset.id}>{jhuWorldDataset.name}</MenuItem>
+            </Select>
+        </FormControl>
+    )
     const measureSelector = (
         <FormControl className={classes.formControl}>
             <InputLabel id="measure-select-label">Measure</InputLabel>
             <Select
                 labelId="measure-select-label"
                 id="measure-select"
-                value={measure.name}
+                value={measure.name || ''}
                 onChange={handleMeasureChange}
             >
                 <MenuItem value={'newCases'}>New Cases</MenuItem>
@@ -222,21 +264,10 @@ function App(): JSX.Element {
             </Select>
         </FormControl>
     )
-    const levelControls = <MultiLevelSelector dataset={dataset} selectMember={setMember} initMember={member} />
+    const levelControls = (
+        <MultiLevelSelector dataset={dataset} selectMember={setMember} initMember={member} key="member-select" />
+    )
 
-    const renderChartLegend = (value: any, entry: any) => {
-        let text = ''
-        const { color } = entry
-        switch (value) {
-            case 'ma':
-                text = '7-day moving average'
-                break
-            case 'newCases':
-                text = 'new cases'
-                break
-        }
-        return <span style={{ color }}>{text}</span>
-    }
     return (
         <div className={classes.root}>
             <CssBaseline />
@@ -282,6 +313,8 @@ function App(): JSX.Element {
                 </div>
                 <Divider />
                 <List>
+                    {datasetSelector}
+                    <br />
                     {measureSelector} {levelControls}
                 </List>
             </Drawer>
@@ -291,7 +324,9 @@ function App(): JSX.Element {
                     <Grid container spacing={3}>
                         {/* Chart */}
                         <Typography component="h2" variant="h6" color="inherit" noWrap className={classes.title}>
-                            Population: {dataset.population[member?.id || ''] || ''}
+                            {dataset.id === jhuUSDataset.id
+                                ? `Population: ${jhuUSDataset.population[member?.id || ''] || ''}`
+                                : null}
                         </Typography>
                         <Grid item xs={12} md={8} lg={12}>
                             <Paper className={classes.paper}>
