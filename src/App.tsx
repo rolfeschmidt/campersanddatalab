@@ -144,6 +144,9 @@ const useStyles = makeStyles((theme: Theme) => ({
 const search = window.location.search
 const urlparams = new URLSearchParams(search)
 const initSeries = urlparams.get('s1')
+const initMeasure = urlparams.get('m')
+const initDataset = urlparams.get('ds')
+
 const fragment = window.location.hash
 
 function App(): JSX.Element {
@@ -152,15 +155,15 @@ function App(): JSX.Element {
 
     const [member, setMember] = useState<Member | null>(null)
     const [series, setSeries] = useState<TimeSeries>()
-    const [measure, setMeasure] = useState<Measure>({ name: 'newCases' })
+    const [measure, setMeasure] = useState<Measure>({ name: initMeasure || 'newCases' })
 
-    const [dataset, setDataset] = useState<Dataset>(jhuUSDataset)
+    const [dataset, setDataset] = useState<Dataset>(initDataset === jhuUSDataset.id ? jhuUSDataset : jhuWorldDataset)
 
     useEffect(() => {
         document.title = 'COVID-19 Data Explorer'
         dataset.ready
             .then(() => {
-                const initmember = initSeries ? jhuUSDataset.members[initSeries] : jhuUSDataset.levels[0].members[0]
+                const initmember = (initSeries && dataset.members[initSeries]) || dataset.levels[0].members[0]
                 console.log({ initSeries, initmember })
                 setMember(initmember)
             })
@@ -177,7 +180,6 @@ function App(): JSX.Element {
         if (member) {
             if (member.id !== urlparams.get('s1')) {
                 urlparams.set('s1', member.id)
-                console.log(window.location.pathname + '?' + urlparams.toString())
                 window.history.pushState({ s1: member.id }, '', window.location.pathname + '?' + urlparams.toString())
             }
             dataset
@@ -193,6 +195,10 @@ function App(): JSX.Element {
 
     useEffect(() => {
         if (member && measure) {
+            if (measure.name !== urlparams.get('m')) {
+                urlparams.set('m', measure.name)
+                window.history.pushState({ m: measure.name }, '', window.location.pathname + '?' + urlparams.toString())
+            }
             dataset
                 .getSeries(member, measure)
                 .then((ts: TimeSeries) => {
@@ -203,6 +209,13 @@ function App(): JSX.Element {
                 })
         }
     }, [member, measure])
+
+    useEffect(() => {
+        if (dataset.id !== urlparams.get('ds')) {
+            urlparams.set('ds', dataset.id)
+            window.history.pushState({ ds: dataset.id }, '', window.location.pathname + '?' + urlparams.toString())
+        }
+    }, [dataset])
 
     const handleDrawerOpen = () => {
         setOpen(true)
@@ -248,10 +261,18 @@ function App(): JSX.Element {
                 value={measure.name || ''}
                 onChange={handleMeasureChange}
             >
-                <MenuItem value={'newCases'}>New Cases</MenuItem>
-                <MenuItem value={'confirmed'}>Confirmed Cases</MenuItem>
-                <MenuItem value={'newDeaths'}>New Deaths</MenuItem>
-                <MenuItem value={'deaths'}>Deaths</MenuItem>
+                <MenuItem value={'newCases'} key={'newCases'}>
+                    New Cases
+                </MenuItem>
+                <MenuItem value={'confirmed'} key={'confirmed'}>
+                    Confirmed Cases
+                </MenuItem>
+                <MenuItem value={'newDeaths'} key={'newDeaths'}>
+                    New Deaths
+                </MenuItem>
+                <MenuItem value={'deaths'} key={'deaths'}>
+                    Deaths
+                </MenuItem>
             </Select>
         </FormControl>
     )
