@@ -236,7 +236,7 @@ function App(): JSX.Element {
 
     const datasetSelector = (
         <FormControl className={classes.formControl}>
-            <InputLabel id="dataset-select-label">Measure</InputLabel>
+            <InputLabel id="dataset-select-label">Dataset</InputLabel>
             <Select
                 labelId="dataset-select-label"
                 id="dataset-select"
